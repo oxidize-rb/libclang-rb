@@ -5,9 +5,24 @@ on:
   - push
 
 jobs:
-  ci:
+  build-gem:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.1"
+      - run: rake
+      - uses: actions/upload-artifact@v2
+        with:
+          name: gem
+          path: pkg/*.gem
+
+  github-runners:
+    needs: build-gem
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         include:
           - os: ubuntu-latest
@@ -26,11 +41,45 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
-      - name: Build gem
-        run: rake stage:${{ matrix.ruby-platform }}
+      - uses: actions/download-artifact@v2
+        with:
+          name: gem
+          path: pkg/*-${{ matrix.ruby-platform }}.gem
 
       - name: Gem install
         run: gem install pkg/*.gem
 
       - name: Test
         run: ruby test/*.rb
+
+  qemu:
+    needs: build-gem
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - ruby-platform: "x86_64-linux"
+            docker-platform: "linux/amd64"
+            base-image: "ruby:3.1"
+          - ruby-platform: "aarch64-linux"
+            docker-platform: "linux/arm64"
+            base-image: "ruby:3.1"
+          - ruby-platform: "x86_64-linux-musl"
+            docker-platform: "linux/amd64"
+            base-image: "ruby:3.1-alpine"
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/download-artifact@v2
+        with:
+          name: gem
+          path: pkg/*-${{ matrix.ruby-platform }}.gem
+
+      - uses: docker/setup-qemu-action@v1
+        with:
+          platforms: ${{ matrix.docker-platform }}
+
+      - run: |
+          docker buildx create --use --name test-${{ matrix.ruby-platform }}
+          docker buildx run --rm -it --platform ${{ matrix.docker-platform }} -v $PWD:/src ${{ matrix.base-image }} -w /src bash -c "gem install pkg/*.gem && ruby test/*.rb"
