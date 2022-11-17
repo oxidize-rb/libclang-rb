@@ -16,7 +16,7 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           name: gem
-          path: pkg/*.gem
+          path: pkg/
 
   github-runners:
     needs: build-gem
@@ -44,7 +44,7 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: gem
-          path: pkg/*-${{ matrix.ruby-platform }}.gem
+          path: pkg/
 
       - name: Gem install
         run: gem install pkg/*.gem
@@ -82,4 +82,4 @@ jobs:
 
       - run: |
           docker buildx create --use --name test-${{ matrix.ruby-platform }}
-          dockerrun --rm -it --platform ${{ matrix.docker-platform }} -v $PWD:/src ${{ matrix.base-image }} -w /src bash -c "gem install pkg/*.gem && ruby test/*.rb"
+          docker run --rm -it --platform ${{ matrix.docker-platform }} -v $PWD:/src ${{ matrix.base-image }} -w /src bash -c "gem install pkg/*-${{ matrix.ruby-platform }}.gem && ruby test/*.rb"
