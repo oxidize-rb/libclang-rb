@@ -82,4 +82,4 @@ jobs:
 
       - run: |
           docker buildx create --use --name test-${{ matrix.ruby-platform }}
-          docker run --rm -it --platform ${{ matrix.docker-platform }} -v $PWD:/src ${{ matrix.base-image }} -w /src bash -c "gem install pkg/*-${{ matrix.ruby-platform }}.gem && ruby test/*.rb"
+          docker run --platform ${{ matrix.docker-platform }} -v $PWD:/src ${{ matrix.base-image }} -w /src bash -c "gem install pkg/*-${{ matrix.ruby-platform }}.gem && ruby test/*.rb"
