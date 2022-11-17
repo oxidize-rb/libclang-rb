@@ -7,12 +7,18 @@ on:
 jobs:
   build-gem:
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.set-output.outputs.version }}
     steps:
       - uses: actions/checkout@v2
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: "3.1"
       - run: rake
+      - id: set-output
+        run: |
+          version="$(ruby -e "require \"$PWD/lib/libclang/version.rb\"; puts Libclang::VERSION")"
+          echo "version=$version" >> $GITHUB_OUTPUT
       - uses: actions/upload-artifact@v2
         with:
           name: gem
@@ -49,8 +55,7 @@ jobs:
       - name: Gem install
         shell: bash
         run: |
-          version="$(ruby -e "require \"$PWD/lib/libclang/version.rb\"; puts Libclang::VERSION")"
-          gem install pkg/libclang-$version-${{ matrix.ruby-platform }}.gem
+          gem install pkg/libclang-${{ needs.build-gem.outputs.version }}-${{ matrix.ruby-platform }}.gem
 
       - name: Test
         shell: bash
@@ -88,6 +93,7 @@ jobs:
           platforms: ${{ matrix.docker-platform }}
 
       - run: |
-          version="$(ruby -e "require \"$PWD/lib/libclang/version.rb\"; puts Libclang::VERSION")"
           docker buildx create --use --name test-${{ matrix.ruby-platform }}
-          docker run --platform ${{ matrix.docker-platform }} -v $PWD:/src -w /src ${{ matrix.base-image }} sh -c "${{ matrix.setup }}; gem install pkg/libclang-$version-${{ matrix.ruby-platform }}.gem && ruby test/*.rb"
+
+          docker run --platform ${{ matrix.docker-platform }} -v $PWD:/src -w /src ${{ matrix.base-image }} \
+            sh -c "${{ matrix.setup }}; gem install pkg/libclang-${{ needs.build-gem.outputs.version }}-${{ matrix.ruby-platform }}.gem && ruby test/*.rb"
