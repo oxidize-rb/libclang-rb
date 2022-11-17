@@ -81,6 +81,6 @@ jobs:
           platforms: ${{ matrix.docker-platform }}
 
       - run: |
-          version="$(ruby -e 'require_relative "lib/libclang/version"; puts Libclang::VERSION')"
+          version="$(ruby -e "require \"$PWD/lib/libclang/version.rb\"; puts Libclang::VERSION")"
           docker buildx create --use --name test-${{ matrix.ruby-platform }}
           docker run --platform ${{ matrix.docker-platform }} -v $PWD:/src -w /src ${{ matrix.base-image }} sh -c "gem install pkg/libclang-$version-${{ matrix.ruby-platform }}.gem && ruby test/*.rb"
