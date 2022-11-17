@@ -9,8 +9,6 @@ ARCH_MAP = {
   "x86_64-darwin" => "macosx_10_9_x86_64",
   "x86_64-linux" => "manylinux1_x86_64",
   "x86_64-linux-musl" => "musllinux_1_2_x86_64",
-  "x64-mingw32" => "win_amd64",
-  "x64-mingw-ucrt" => "win_amd64",
   "aarch64-linux" => "manylinux2014_aarch64",
   "arm64-darwin" => "macosx_11_0_arm64"
 }
@@ -63,6 +61,15 @@ end
 task :clean do
   FileUtils.rm_rf("tmp")
   FileUtils.rm_rf("pkg")
+end
+
+task :publish do
+  require_relative "./lib/libclang/version"
+
+  Dir["pkg/*.gem"].each do |gem|
+    system "gem push #{gem}", exception: true
+    system "gh release create v#{Libclang::VERSION} --generate-notes"
+  end
 end
 
 task default: ["clean", "sign", "stage"]
