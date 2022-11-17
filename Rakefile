@@ -18,7 +18,7 @@ ARCH_MAP = {
 ARCH_MAP.each do |ruby_platform, py_platform|
   desc "Download libclang for from PyPI for #{py_platform}"
   task "vendor:#{ruby_platform}" do
-    cmd = "python3 -m pip install libclang --platform #{py_platform} -t tmp/#{ruby_platform} --no-deps libclang==#{GEMSPEC.version}"
+    cmd = "python3 -m pip install --platform #{py_platform} -t tmp/#{ruby_platform} --no-deps libclang==#{GEMSPEC.version}"
     puts "==== #{ruby_platform} ===="
     puts "Running: #{cmd}"
     system cmd, exception: true
