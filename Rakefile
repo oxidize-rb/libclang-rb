@@ -41,7 +41,7 @@ ARCH_MAP.each do |ruby_platform, py_platform|
       FileUtils.cp file, "tmp/stage/#{ruby_platform}/#{file}"
     end
     spec.platform = Gem::Platform.new(ruby_platform)
-    spec.signing_key = File.expand_path("~/.ssh/gem-private_key.pem")
+    spec.signing_key = File.expand_path("~/.ssh/gem-private_key.pem") unless ENV['CI']
     Dir.chdir "tmp/stage/#{ruby_platform}" do
       spec.files = Dir["**/*"].select { |f| File.file?(f) }
       File.write("libclang.gemspec", spec.to_ruby)
@@ -55,6 +55,8 @@ ARCH_MAP.each do |ruby_platform, py_platform|
 end
 
 task "sign" do
+  next if ENV['CI']
+
   ENV["GEM_PRIVATE_KEY_PASSPHRASE"] = $stdin.getpass("Enter passphrase of gem signature key: ")
 end
 

@@ -1,0 +1,36 @@
+---
+name: CI
+
+on:
+  - push
+
+jobs:
+  ci:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            ruby-version: "3.1"
+            ruby-platform: "x86_64-linux"
+          - os: windows-latest
+            ruby-version: "3.1"
+            ruby-platform: "x64-mingw32"
+          - os: macos-latest
+            ruby-version: "3.1"
+            ruby-platform: "x86_64-darwin"
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby-version }}
+
+      - name: Build gem
+        run: rake stage:${{ matrix.ruby-platform }}
+
+      - name: Gem install
+        run: gem install pkg/*.gem
+
+      - name: Test
+        run: ruby test/*.rb
