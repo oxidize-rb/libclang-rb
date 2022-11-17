@@ -30,7 +30,7 @@ jobs:
             ruby-platform: "x86_64-linux"
           - os: windows-latest
             ruby-version: "3.1"
-            ruby-platform: "x64-mingw32"
+            ruby-platform: "x64-mingw32-ucrt"
           - os: macos-latest
             ruby-version: "3.1"
             ruby-platform: "x86_64-darwin"
@@ -74,12 +74,13 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: gem
-          path: pkg/*-${{ matrix.ruby-platform }}.gem
+          path: pkg/
 
       - uses: docker/setup-qemu-action@v1
         with:
           platforms: ${{ matrix.docker-platform }}
 
       - run: |
+          version="$(ruby -e 'require_relative "lib/libclang/version"; puts Libclang::VERSION')"
           docker buildx create --use --name test-${{ matrix.ruby-platform }}
-          docker run --platform ${{ matrix.docker-platform }} -v $PWD:/src -w /src ${{ matrix.base-image }} sh -c "gem install pkg/*-${{ matrix.ruby-platform }}.gem && ruby test/*.rb"
+          docker run --platform ${{ matrix.docker-platform }} -v $PWD:/src -w /src ${{ matrix.base-image }} sh -c "gem install pkg/libclang-$version-${{ matrix.ruby-platform }}.gem && ruby test/*.rb"
