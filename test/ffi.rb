@@ -20,6 +20,6 @@ end
 
 describe FFI do
   it "works" do
-    assert_equal(Clong.version, "clang version 14.0.6")
+    assert_includes(Clong.version, "clang version #{Libclang::VERSION}")
 	end
 end
