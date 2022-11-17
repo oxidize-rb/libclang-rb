@@ -47,9 +47,11 @@ jobs:
           path: pkg/
 
       - name: Gem install
+        shell: bash
         run: gem install pkg/*-${{ matrix.ruby-platform }}.gem
 
       - name: Test
+        shell: bash
         run: ruby test/*.rb
 
   qemu:
