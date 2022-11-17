@@ -48,7 +48,9 @@ jobs:
 
       - name: Gem install
         shell: bash
-        run: gem install pkg/*-${{ matrix.ruby-platform }}.gem
+        run: |
+          version="$(ruby -e "require \"$PWD/lib/libclang/version.rb\"; puts Libclang::VERSION")"
+          gem install pkg/libclang-$version-${{ matrix.ruby-platform }}.gem
 
       - name: Test
         shell: bash
@@ -64,12 +66,15 @@ jobs:
           - ruby-platform: "x86_64-linux"
             docker-platform: "linux/amd64"
             base-image: "ruby:3.1"
+            setup: "echo OK"
           - ruby-platform: "aarch64-linux"
             docker-platform: "linux/arm64"
             base-image: "ruby:3.1"
+            setup: "echo OK"
           - ruby-platform: "x86_64-linux-musl"
             docker-platform: "linux/amd64"
             base-image: "ruby:3.1-alpine"
+            setup: apk update && apk add --no-cache build-base
     steps:
       - uses: actions/checkout@v3
 
@@ -85,4 +90,4 @@ jobs:
       - run: |
           version="$(ruby -e "require \"$PWD/lib/libclang/version.rb\"; puts Libclang::VERSION")"
           docker buildx create --use --name test-${{ matrix.ruby-platform }}
-          docker run --platform ${{ matrix.docker-platform }} -v $PWD:/src -w /src ${{ matrix.base-image }} sh -c "gem install pkg/libclang-$version-${{ matrix.ruby-platform }}.gem && ruby test/*.rb"
+          docker run --platform ${{ matrix.docker-platform }} -v $PWD:/src -w /src ${{ matrix.base-image }} sh -c "${{ matrix.setup }}; gem install pkg/libclang-$version-${{ matrix.ruby-platform }}.gem && ruby test/*.rb"
