@@ -10,7 +10,9 @@ ARCH_MAP = {
   "x86_64-linux" => "manylinux1_x86_64",
   "x86_64-linux-musl" => "musllinux_1_2_x86_64",
   "aarch64-linux" => "manylinux2014_aarch64",
-  "arm64-darwin" => "macosx_11_0_arm64"
+  "arm64-darwin" => "macosx_11_0_arm64",
+  "x64-mingw32" => "win_amd64",
+  "x64-mingw-ucrt" => "win_amd64",
 }
 
 ARCH_MAP.each do |ruby_platform, py_platform|
